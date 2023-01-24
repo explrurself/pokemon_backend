@@ -3,6 +3,11 @@ const USERS = require("../models/users");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const cors = require("cors");
+const corsOptions = {
+  credentials: true,
+  origin: "http://localhost:3000",
+};
 
 // <------------CREATE USER API ---------------->
 
@@ -39,7 +44,7 @@ router.post("/create", async (req, res) => {
 
 // <------------LOGIN USER API ---------------- >
 
-router.post("/login", async (req, res) => {
+router.post("/login", cors(corsOptions), async (req, res) => {
   try {
     if (req.body.email) {
       const found_user = await USERS.findOne({ email: req.body.email });
@@ -77,12 +82,19 @@ router.post("/login", async (req, res) => {
             { new: true }
           )
             .then((data) => {
-              res.status(200).send({
-                status: "success",
-                message: "Login successfull!",
-                token,
-                name: data.name,
-              });
+              res
+                .cookie("token", token, {
+                  httpOnly: false,
+                  path: "/",
+                  expires: new Date(Date.now() + 6000 * 60),
+                })
+                .status(200)
+                .send({
+                  status: "success",
+                  message: "Login successfull!",
+                  token,
+                  name: data.name,
+                });
             })
             .catch((err) => {
               res.status(400).send({
@@ -94,6 +106,7 @@ router.post("/login", async (req, res) => {
       }
     }
   } catch (error) {
+    console.log(error);
     res.status(500).send({
       status: "failed",
       message: error.message,

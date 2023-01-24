@@ -5,19 +5,23 @@ const cors = require("cors");
 require("http");
 const https = require("https");
 
-app.use(cors());
 app.use(express.json());
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
+app.use(cors({
+  credentials: true,
+  origin: "http://localhost:3000"
+}));
 const PORT = process.env.PORT;
 const connectToDatabase = require("./src/config/database");
 const api_endpoints_route = require("./constants");
 
 app.get("/", (req, res) => {
-  res.send("************* WELCOME to POKEMON APPLICATION *************");
+  res.status(202).cookie("token", {Name: "Shbham"}).send({message: "saved"})
+  // res.send("************* WELCOME to POKEMON APPLICATION *************");
 });
 api_endpoints_route.map((item) => app.use(item.path, item.route));
 
@@ -47,6 +51,7 @@ if (process.env.ENVIRONMENT === "DEVELOPMENT") {
     console.log("*******************************************");
     console.log(`port is listening on ${PORT}`);
   });
+
 }
 
 connectToDatabase();
